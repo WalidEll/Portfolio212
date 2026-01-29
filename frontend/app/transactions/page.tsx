@@ -184,49 +184,105 @@ export default function TransactionsPage() {
         <h2 className="text-lg font-semibold">List</h2>
         {loading ? (
           <div className="mt-3 text-sm text-slate-700">Loading…</div>
+        ) : txs.length === 0 ? (
+          <div className="mt-3 text-sm text-slate-700">No transactions yet.</div>
         ) : (
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-left text-xs text-slate-600">
-                <tr>
-                  <th className="py-2">Date</th>
-                  <th className="py-2">Symbol</th>
-                  <th className="py-2">Type</th>
-                  <th className="py-2">Qty</th>
-                  <th className="py-2">Avg Price</th>
-                  <th className="py-2">Total</th>
-                  <th className="py-2">Amount</th>
-                  <th className="py-2">Note</th>
-                  <th className="py-2"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {txs.map((t) => {
-                  const totalRow = t.quantity && t.price ? t.quantity * t.price : 0;
-                  return (
-                    <tr key={t.id} className="border-t border-slate-100">
-                      <td className="py-2">{t.tradeDate}</td>
-                      <td className="py-2 font-semibold">{t.symbol}</td>
-                      <td className="py-2">{t.type}</td>
-                      <td className="py-2">{fmt(t.quantity)}</td>
-                      <td className="py-2">{fmt(t.price)}</td>
-                      <td className="py-2">{t.type === 'BUY' || t.type === 'SELL' ? fmt(totalRow) : ''}</td>
-                      <td className="py-2">{fmt(t.amount)}</td>
-                      <td className="py-2">{t.note || ''}</td>
-                      <td className="py-2">
-                        <button
-                          className="text-xs font-semibold text-red-700 hover:underline"
-                          onClick={() => del(t.id)}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <>
+            {/* Mobile cards */}
+            <div className="mt-3 space-y-3 sm:hidden">
+              {txs.map((t) => {
+                const totalRow = t.quantity && t.price ? t.quantity * t.price : 0;
+                const showTrade = t.type === 'BUY' || t.type === 'SELL';
+                return (
+                  <div key={t.id} className="rounded-2xl border border-slate-200 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="font-semibold">{t.symbol}</div>
+                        <div className="text-xs text-slate-600">
+                          {t.tradeDate} • {t.type}
+                        </div>
+                      </div>
+                      <button
+                        className="text-xs font-semibold text-red-700"
+                        onClick={() => del(t.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                      <div className="text-slate-600">Qty</div>
+                      <div className="text-right font-semibold">{fmt(t.quantity)}</div>
+
+                      <div className="text-slate-600">Avg price</div>
+                      <div className="text-right font-semibold">{fmt(t.price)}</div>
+
+                      {showTrade && (
+                        <>
+                          <div className="text-slate-600">Total</div>
+                          <div className="text-right font-semibold">{fmt(totalRow)}</div>
+                        </>
+                      )}
+
+                      <div className="text-slate-600">Amount</div>
+                      <div className="text-right font-semibold">{fmt(t.amount)}</div>
+
+                      {t.note && (
+                        <>
+                          <div className="text-slate-600">Note</div>
+                          <div className="text-right">{t.note}</div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop table */}
+            <div className="mt-3 hidden overflow-x-auto sm:block">
+              <table className="w-full text-sm">
+                <thead className="text-left text-xs text-slate-600">
+                  <tr>
+                    <th className="py-2">Date</th>
+                    <th className="py-2">Symbol</th>
+                    <th className="py-2">Type</th>
+                    <th className="py-2">Qty</th>
+                    <th className="py-2">Avg Price</th>
+                    <th className="py-2">Total</th>
+                    <th className="py-2">Amount</th>
+                    <th className="py-2">Note</th>
+                    <th className="py-2"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {txs.map((t) => {
+                    const totalRow = t.quantity && t.price ? t.quantity * t.price : 0;
+                    return (
+                      <tr key={t.id} className="border-t border-slate-100">
+                        <td className="py-2">{t.tradeDate}</td>
+                        <td className="py-2 font-semibold">{t.symbol}</td>
+                        <td className="py-2">{t.type}</td>
+                        <td className="py-2">{fmt(t.quantity)}</td>
+                        <td className="py-2">{fmt(t.price)}</td>
+                        <td className="py-2">{t.type === 'BUY' || t.type === 'SELL' ? fmt(totalRow) : ''}</td>
+                        <td className="py-2">{fmt(t.amount)}</td>
+                        <td className="py-2">{t.note || ''}</td>
+                        <td className="py-2">
+                          <button
+                            className="text-xs font-semibold text-red-700 hover:underline"
+                            onClick={() => del(t.id)}
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </div>
