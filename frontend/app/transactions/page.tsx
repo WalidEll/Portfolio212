@@ -11,7 +11,7 @@ type Tx = {
   symbol: string;
   type: TxType;
   quantity: number | null;
-  price: number | null;
+  price: number | null; // stored as avg price/share for BUY/SELL
   amount: number | null;
   note: string | null;
 };
@@ -29,19 +29,27 @@ export default function TransactionsPage() {
   const [symbol, setSymbol] = useState('ATW');
   const [type, setType] = useState<TxType>('BUY');
   const [quantity, setQuantity] = useState('');
-  const [price, setPrice] = useState('');
+
+  // For BUY/SELL we want the user to enter TOTAL (net amount executed)
+  const [total, setTotal] = useState('');
+
+  // For DIVIDEND/FEE
   const [amount, setAmount] = useState('');
+
   const [note, setNote] = useState('');
 
-  const needsQtyPrice = type === 'BUY' || type === 'SELL';
+  const needsQtyTotal = type === 'BUY' || type === 'SELL';
   const needsAmount = type === 'DIVIDEND' || type === 'FEE';
+
+  const qtyNum = Number(quantity || 0);
+  const totalNum = Number(total || 0);
+  const avgPrice = needsQtyTotal && qtyNum > 0 ? totalNum / qtyNum : 0;
 
   const load = async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await apiGet<Tx[]>('/api/transactions');
-      // sort newest first
       data.sort((a, b) => (a.tradeDate < b.tradeDate ? 1 : -1));
       setTxs(data);
     } catch (e: any) {
@@ -62,8 +70,10 @@ export default function TransactionsPage() {
         tradeDate,
         symbol,
         type,
-        quantity: needsQtyPrice ? Number(quantity || 0) : null,
-        price: needsQtyPrice ? Number(price || 0) : null,
+        quantity: needsQtyTotal ? Number(quantity || 0) : null,
+        // Keep DB storing price/share, but we send total so backend derives price.
+        price: null,
+        total: needsQtyTotal ? Number(total || 0) : null,
         amount: needsAmount ? Number(amount || 0) : null,
         note: note || null
       });
@@ -126,23 +136,29 @@ export default function TransactionsPage() {
           <label className="sm:col-span-1">
             <div className="text-xs text-slate-600">Quantity</div>
             <input
-              disabled={!needsQtyPrice}
+              disabled={!needsQtyTotal}
               className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm disabled:bg-slate-100"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
-              placeholder={needsQtyPrice ? 'e.g. 10' : ''}
+              placeholder={needsQtyTotal ? 'e.g. 10' : ''}
             />
           </label>
 
           <label className="sm:col-span-1">
-            <div className="text-xs text-slate-600">Price / Amount</div>
+            <div className="text-xs text-slate-600">{needsAmount ? 'Amount (MAD)' : 'Total (MAD)'}</div>
             <input
               className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
-              value={needsAmount ? amount : price}
-              onChange={(e) => (needsAmount ? setAmount(e.target.value) : setPrice(e.target.value))}
+              value={needsAmount ? amount : total}
+              onChange={(e) => (needsAmount ? setAmount(e.target.value) : setTotal(e.target.value))}
               placeholder={'MAD'}
             />
           </label>
+
+          {needsQtyTotal && (
+            <div className="sm:col-span-6 text-sm text-slate-700">
+              Avg price/share: <span className="font-semibold">{fmt(avgPrice)}</span> MAD
+            </div>
+          )}
 
           <label className="sm:col-span-6">
             <div className="text-xs text-slate-600">Note</div>
@@ -177,32 +193,37 @@ export default function TransactionsPage() {
                   <th className="py-2">Symbol</th>
                   <th className="py-2">Type</th>
                   <th className="py-2">Qty</th>
-                  <th className="py-2">Price</th>
+                  <th className="py-2">Avg Price</th>
+                  <th className="py-2">Total</th>
                   <th className="py-2">Amount</th>
                   <th className="py-2">Note</th>
                   <th className="py-2"></th>
                 </tr>
               </thead>
               <tbody>
-                {txs.map((t) => (
-                  <tr key={t.id} className="border-t border-slate-100">
-                    <td className="py-2">{t.tradeDate}</td>
-                    <td className="py-2 font-semibold">{t.symbol}</td>
-                    <td className="py-2">{t.type}</td>
-                    <td className="py-2">{fmt(t.quantity)}</td>
-                    <td className="py-2">{fmt(t.price)}</td>
-                    <td className="py-2">{fmt(t.amount)}</td>
-                    <td className="py-2">{t.note || ''}</td>
-                    <td className="py-2">
-                      <button
-                        className="text-xs font-semibold text-red-700 hover:underline"
-                        onClick={() => del(t.id)}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {txs.map((t) => {
+                  const totalRow = t.quantity && t.price ? t.quantity * t.price : 0;
+                  return (
+                    <tr key={t.id} className="border-t border-slate-100">
+                      <td className="py-2">{t.tradeDate}</td>
+                      <td className="py-2 font-semibold">{t.symbol}</td>
+                      <td className="py-2">{t.type}</td>
+                      <td className="py-2">{fmt(t.quantity)}</td>
+                      <td className="py-2">{fmt(t.price)}</td>
+                      <td className="py-2">{t.type === 'BUY' || t.type === 'SELL' ? fmt(totalRow) : ''}</td>
+                      <td className="py-2">{fmt(t.amount)}</td>
+                      <td className="py-2">{t.note || ''}</td>
+                      <td className="py-2">
+                        <button
+                          className="text-xs font-semibold text-red-700 hover:underline"
+                          onClick={() => del(t.id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
