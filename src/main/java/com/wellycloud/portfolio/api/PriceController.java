@@ -15,17 +15,13 @@ public class PriceController {
   private final PriceSnapshotRepo repo;
   private final PriceIngestionService ingestion;
 
-  @SuppressWarnings("unused")
-  @PathVariable("portfolio")
-  String portfolio;
-
   @PostMapping("/refresh")
-  public int refresh() {
+  public int refresh(@PathVariable("portfolio") String portfolio) {
     return ingestion.refreshAllDaily();
   }
 
   @GetMapping("/latest")
-  public List<PriceSnapshotDto> latest() {
+  public List<PriceSnapshotDto> latest(@PathVariable("portfolio") String portfolio) {
     return repo.findAll().stream()
         .collect(java.util.stream.Collectors.groupingBy(p -> p.getSymbol(),
             java.util.stream.Collectors.maxBy(java.util.Comparator.comparing(p -> p.getQuoteTime()))))

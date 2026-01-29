@@ -17,17 +17,13 @@ public class TxController {
   private final TxRepo repo;
   private final InstrumentService instrumentService;
 
-  @SuppressWarnings("unused")
-  @PathVariable("portfolio")
-  String portfolio;
-
   @GetMapping
-  public List<Tx> list() {
+  public List<Tx> list(@PathVariable("portfolio") String portfolio) {
     return repo.findAll();
   }
 
   @PostMapping
-  public Tx create(@Valid @RequestBody CreateTxRequest req) {
+  public Tx create(@PathVariable("portfolio") String portfolio, @Valid @RequestBody CreateTxRequest req) {
     instrumentService.ensureExists(req.symbol());
 
     Tx tx = Tx.builder()
@@ -44,7 +40,7 @@ public class TxController {
   }
 
   @DeleteMapping("/{id}")
-  public void delete(@PathVariable Long id) {
+  public void delete(@PathVariable("portfolio") String portfolio, @PathVariable Long id) {
     repo.deleteById(id);
   }
 }

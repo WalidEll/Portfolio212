@@ -18,12 +18,8 @@ public class PortfolioController {
   private final InstrumentRepo instrumentRepo;
   private final PortfolioService portfolioService;
 
-  @SuppressWarnings("unused")
-  @PathVariable("portfolio")
-  String portfolio;
-
   @GetMapping("/holdings")
-  public List<HoldingDto> holdings() {
+  public List<HoldingDto> holdings(@PathVariable("portfolio") String portfolio) {
     var symbols = instrumentRepo.findAll().stream().map(i -> i.getSymbol()).toList();
     return portfolioService.holdingsForSymbols(symbols);
   }
