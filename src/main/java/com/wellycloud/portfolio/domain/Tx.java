@@ -35,6 +35,10 @@ public class Tx {
   @Column(precision = 18, scale = 6)
   private BigDecimal price;
 
+  /** Optional fee (MAD) to apply to BUY/SELL transactions. */
+  @Column(precision = 18, scale = 6)
+  private BigDecimal fee;
+
   // Used for DIVIDEND/FEE
   @Column(precision = 18, scale = 6)
   private BigDecimal amount;

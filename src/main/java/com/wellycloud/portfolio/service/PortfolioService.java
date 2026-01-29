@@ -42,17 +42,30 @@ public class PortfolioService {
         case BUY -> {
           BigDecimal qty = nz(tx.getQuantity());
           BigDecimal price = nz(tx.getPrice());
+          BigDecimal fee = nz(tx.getFee());
           if (qty.signum() == 0) break;
-          BigDecimal totalCost = avgCost.multiply(shares).add(price.multiply(qty));
+
+          // Fee increases the cost basis of the buy.
+          BigDecimal totalCost = avgCost.multiply(shares).add(price.multiply(qty)).add(fee);
           shares = shares.add(qty);
           avgCost = shares.signum() == 0 ? BigDecimal.ZERO : totalCost.divide(shares, 6, RoundingMode.HALF_UP);
+
+          fees = fees.add(fee);
         }
         case SELL -> {
           BigDecimal qty = nz(tx.getQuantity());
           BigDecimal price = nz(tx.getPrice());
+          BigDecimal fee = nz(tx.getFee());
           if (qty.signum() == 0) break;
-          BigDecimal pnl = price.subtract(avgCost).multiply(qty);
+
+          // Fee reduces proceeds.
+          BigDecimal proceeds = price.multiply(qty).subtract(fee);
+          BigDecimal cost = avgCost.multiply(qty);
+          BigDecimal pnl = proceeds.subtract(cost);
+
           realized = realized.add(pnl);
+          fees = fees.add(fee);
+
           shares = shares.subtract(qty);
           if (shares.signum() <= 0) {
             shares = BigDecimal.ZERO;
