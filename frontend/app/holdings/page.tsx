@@ -1,7 +1,7 @@
 'use client';
 
 import {useEffect, useMemo, useState} from 'react';
-import PieChart from '../components/PieChart';
+import PieChart, {pieColorForIndex} from '../components/PieChart';
 import {apiGet} from '../lib/api';
 
 type Holding = {
@@ -34,7 +34,8 @@ export default function HoldingsPage() {
   const pieSlices = useMemo(() => {
     return holdings
       .filter((h) => (h.marketValue || 0) > 0)
-      .map((h) => ({label: h.symbol, value: h.marketValue || 0}));
+      .map((h) => ({label: h.symbol, value: h.marketValue || 0}))
+      .sort((a, b) => b.value - a.value);
   }, [holdings]);
 
   return (
@@ -56,20 +57,24 @@ export default function HoldingsPage() {
               {pieSlices.length === 0 ? (
                 <div className="text-sm text-slate-600">No holdings yet.</div>
               ) : (
-                pieSlices
-                  .slice()
-                  .sort((a, b) => b.value - a.value)
-                  .map((s) => (
-                    <div key={s.label} className="flex items-center justify-between gap-3 text-sm">
+                pieSlices.map((s, idx) => (
+                  <div key={s.label} className="flex items-center justify-between gap-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="inline-block h-2.5 w-2.5 rounded-sm"
+                        style={{backgroundColor: pieColorForIndex(idx)}}
+                        aria-hidden="true"
+                      />
                       <div className="font-semibold">{s.label}</div>
-                      <div className="text-slate-700">
-                        {fmt(s.value)} MAD
-                        {totalValue > 0 ? (
-                          <span className="text-slate-500"> • {fmt((s.value / totalValue) * 100)}%</span>
-                        ) : null}
-                      </div>
                     </div>
-                  ))
+                    <div className="text-slate-700">
+                      {fmt(s.value)} MAD
+                      {totalValue > 0 ? (
+                        <span className="text-slate-500"> • {fmt((s.value / totalValue) * 100)}%</span>
+                      ) : null}
+                    </div>
+                  </div>
+                ))
               )}
             </div>
           </div>
