@@ -1,3 +1,6 @@
+'use client';
+
+import {useEffect, useState} from 'react';
 import {apiGet, apiPost} from '../lib/api';
 
 type Price = {
@@ -17,8 +20,18 @@ function fmt(n: number | null) {
   return new Intl.NumberFormat('fr-MA', {maximumFractionDigits: 2}).format(n || 0);
 }
 
-export default async function PricesPage() {
-  const latest = await apiGet<Price[]>('/api/prices/latest');
+export default function PricesPage() {
+  const [latest, setLatest] = useState<Price[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = async () => {
+    const data = await apiGet<Price[]>('/api/prices/latest');
+    setLatest(data);
+  };
+
+  useEffect(() => {
+    load().catch((e) => setError(String(e)));
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -28,17 +41,18 @@ export default async function PricesPage() {
           <p className="mt-1 text-sm text-slate-600">Latest stored snapshots (delayed).</p>
         </div>
 
-        <form
-          action={async () => {
-            'use server';
+        <button
+          className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+          onClick={async () => {
             await apiPost<number>('/api/prices/refresh');
+            await load();
           }}
         >
-          <button className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
-            Refresh now
-          </button>
-        </form>
+          Refresh now
+        </button>
       </div>
+
+      {error && <div className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5">
         <div className="overflow-x-auto">

@@ -11,11 +11,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/transactions")
+@RequestMapping("/api/p/{portfolio}/transactions")
 @RequiredArgsConstructor
 public class TxController {
   private final TxRepo repo;
   private final InstrumentService instrumentService;
+
+  @SuppressWarnings("unused")
+  @PathVariable("portfolio")
+  String portfolio;
 
   @GetMapping
   public List<Tx> list() {

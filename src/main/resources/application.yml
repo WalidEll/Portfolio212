@@ -3,20 +3,20 @@ server:
 
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/portfolio}
-    username: ${SPRING_DATASOURCE_USERNAME:portfolio}
-    password: ${SPRING_DATASOURCE_PASSWORD:portfolio}
+    url: jdbc:sqlite:./data/portfolios/default.db
+    driver-class-name: org.sqlite.JDBC
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     properties:
       hibernate:
+        dialect: org.hibernate.community.dialect.SQLiteDialect
         jdbc:
           time_zone: UTC
-  flyway:
-    enabled: true
 
 app:
+  portfolios:
+    dir: ./data/portfolios
   priceSource:
     baseUrl: ${APP_PRICE_SOURCE_BASEURL:https://www.wafabourse.com}
     endpointPath: /api/proxy/data/JNNJ

@@ -9,11 +9,15 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/prices")
+@RequestMapping("/api/p/{portfolio}/prices")
 @RequiredArgsConstructor
 public class PriceController {
   private final PriceSnapshotRepo repo;
   private final PriceIngestionService ingestion;
+
+  @SuppressWarnings("unused")
+  @PathVariable("portfolio")
+  String portfolio;
 
   @PostMapping("/refresh")
   public int refresh() {

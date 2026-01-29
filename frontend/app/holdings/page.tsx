@@ -1,3 +1,6 @@
+'use client';
+
+import {useEffect, useState} from 'react';
 import {apiGet} from '../lib/api';
 
 type Holding = {
@@ -17,13 +20,20 @@ function fmt(n: number) {
   return new Intl.NumberFormat('fr-MA', {maximumFractionDigits: 2}).format(n || 0);
 }
 
-export default async function HoldingsPage() {
-  const holdings = await apiGet<Holding[]>('/api/holdings');
+export default function HoldingsPage() {
+  const [holdings, setHoldings] = useState<Holding[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    apiGet<Holding[]>('/api/holdings').then(setHoldings).catch((e) => setError(String(e)));
+  }, []);
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5">
       <h1 className="text-xl font-semibold">Holdings</h1>
       <p className="mt-1 text-sm text-slate-600">Average cost, dividends and fees included.</p>
+
+      {error && <div className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
       <div className="mt-4 overflow-x-auto">
         <table className="w-full text-sm">

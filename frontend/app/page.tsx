@@ -1,3 +1,6 @@
+'use client';
+
+import {useEffect, useMemo, useState} from 'react';
 import {apiGet, apiPost} from './lib/api';
 
 type Holding = {
@@ -17,18 +20,25 @@ function fmt(n: number) {
   return new Intl.NumberFormat('fr-MA', {maximumFractionDigits: 2}).format(n || 0);
 }
 
-export default async function Dashboard() {
-  const holdings = await apiGet<Holding[]>('/api/holdings');
+export default function Dashboard() {
+  const [holdings, setHoldings] = useState<Holding[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  const totalValue = holdings.reduce((s, h) => s + (h.marketValue || 0), 0);
-  const invested = holdings.reduce((s, h) => s + (h.invested || 0), 0);
-  const unreal = holdings.reduce((s, h) => s + (h.unrealizedPnl || 0), 0);
+  useEffect(() => {
+    apiGet<Holding[]>('/api/holdings').then(setHoldings).catch((e) => setError(String(e)));
+  }, []);
+
+  const totalValue = useMemo(() => holdings.reduce((s, h) => s + (h.marketValue || 0), 0), [holdings]);
+  const invested = useMemo(() => holdings.reduce((s, h) => s + (h.invested || 0), 0), [holdings]);
+  const unreal = useMemo(() => holdings.reduce((s, h) => s + (h.unrealizedPnl || 0), 0), [holdings]);
 
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-slate-200 bg-white p-5">
         <h1 className="text-xl font-semibold">Dashboard</h1>
         <p className="mt-1 text-sm text-slate-600">Totals based on latest stored prices.</p>
+
+        {error && <div className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="rounded-xl bg-slate-50 p-3">
@@ -47,17 +57,16 @@ export default async function Dashboard() {
           </div>
         </div>
 
-        <form
-          className="mt-4"
-          action={async () => {
-            'use server';
+        <button
+          className="mt-4 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+          onClick={async () => {
             await apiPost<number>('/api/prices/refresh');
+            const h = await apiGet<Holding[]>('/api/holdings');
+            setHoldings(h);
           }}
         >
-          <button className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">
-            Refresh prices now
-          </button>
-        </form>
+          Refresh prices now
+        </button>
       </div>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5">
