@@ -13,9 +13,6 @@ public record CreateTxRequest(
     @NotNull TransactionType type,
     BigDecimal quantity,
     BigDecimal price,
-    /** Optional fee (MAD) to apply to BUY/SELL transactions. */
-    BigDecimal fee,
-    /** Used for DIVIDEND/FEE transaction types (MAD). */
     BigDecimal amount,
     String note
 ) {}

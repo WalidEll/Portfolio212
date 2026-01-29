@@ -12,7 +12,6 @@ type Tx = {
   type: TxType;
   quantity: number | null;
   price: number | null;
-  fee: number | null;
   amount: number | null;
   note: string | null;
 };
@@ -31,7 +30,6 @@ export default function TransactionsPage() {
   const [type, setType] = useState<TxType>('BUY');
   const [quantity, setQuantity] = useState('');
   const [price, setPrice] = useState('');
-  const [fee, setFee] = useState('');
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
 
@@ -66,7 +64,6 @@ export default function TransactionsPage() {
         type,
         quantity: needsQtyPrice ? Number(quantity || 0) : null,
         price: needsQtyPrice ? Number(price || 0) : null,
-        fee: needsQtyPrice ? Number(fee || 0) : null,
         amount: needsAmount ? Number(amount || 0) : null,
         note: note || null
       });
@@ -86,15 +83,15 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-slate-200 bg-white p-5">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 text-slate-900">
         <h1 className="text-xl font-semibold">Transactions</h1>
-        <p className="mt-1 text-sm text-slate-600">API: {apiHint}</p>
+        <p className="mt-1 text-sm text-slate-700">API: {apiHint}</p>
 
         {error && <div className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-6">
           <label className="sm:col-span-2">
-            <div className="text-xs text-slate-500">Date</div>
+            <div className="text-xs text-slate-600">Date</div>
             <input
               className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
               type="date"
@@ -104,7 +101,7 @@ export default function TransactionsPage() {
           </label>
 
           <label className="sm:col-span-1">
-            <div className="text-xs text-slate-500">Symbol</div>
+            <div className="text-xs text-slate-600">Symbol</div>
             <input
               className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
               value={symbol}
@@ -113,7 +110,7 @@ export default function TransactionsPage() {
           </label>
 
           <label className="sm:col-span-1">
-            <div className="text-xs text-slate-500">Type</div>
+            <div className="text-xs text-slate-600">Type</div>
             <select
               className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
               value={type}
@@ -127,7 +124,7 @@ export default function TransactionsPage() {
           </label>
 
           <label className="sm:col-span-1">
-            <div className="text-xs text-slate-500">Quantity</div>
+            <div className="text-xs text-slate-600">Quantity</div>
             <input
               disabled={!needsQtyPrice}
               className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm disabled:bg-slate-100"
@@ -138,28 +135,17 @@ export default function TransactionsPage() {
           </label>
 
           <label className="sm:col-span-1">
-            <div className="text-xs text-slate-500">Price / Amount</div>
+            <div className="text-xs text-slate-600">Price / Amount</div>
             <input
               className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
               value={needsAmount ? amount : price}
               onChange={(e) => (needsAmount ? setAmount(e.target.value) : setPrice(e.target.value))}
-              placeholder={needsAmount ? 'MAD' : 'MAD'}
-            />
-          </label>
-
-          <label className="sm:col-span-1">
-            <div className="text-xs text-slate-500">Fee</div>
-            <input
-              disabled={!needsQtyPrice}
-              className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm disabled:bg-slate-100"
-              value={fee}
-              onChange={(e) => setFee(e.target.value)}
-              placeholder={needsQtyPrice ? 'MAD' : ''}
+              placeholder={'MAD'}
             />
           </label>
 
           <label className="sm:col-span-6">
-            <div className="text-xs text-slate-500">Note</div>
+            <div className="text-xs text-slate-600">Note</div>
             <input
               className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
               value={note}
@@ -178,21 +164,20 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-5">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 text-slate-900">
         <h2 className="text-lg font-semibold">List</h2>
         {loading ? (
-          <div className="mt-3 text-sm text-slate-600">Loading…</div>
+          <div className="mt-3 text-sm text-slate-700">Loading…</div>
         ) : (
           <div className="mt-3 overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="text-left text-xs text-slate-500">
+              <thead className="text-left text-xs text-slate-600">
                 <tr>
                   <th className="py-2">Date</th>
                   <th className="py-2">Symbol</th>
                   <th className="py-2">Type</th>
                   <th className="py-2">Qty</th>
                   <th className="py-2">Price</th>
-                  <th className="py-2">Fee</th>
                   <th className="py-2">Amount</th>
                   <th className="py-2">Note</th>
                   <th className="py-2"></th>
@@ -206,7 +191,6 @@ export default function TransactionsPage() {
                     <td className="py-2">{t.type}</td>
                     <td className="py-2">{fmt(t.quantity)}</td>
                     <td className="py-2">{fmt(t.price)}</td>
-                    <td className="py-2">{fmt(t.fee)}</td>
                     <td className="py-2">{fmt(t.amount)}</td>
                     <td className="py-2">{t.note || ''}</td>
                     <td className="py-2">

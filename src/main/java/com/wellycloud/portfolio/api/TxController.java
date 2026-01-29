@@ -32,7 +32,6 @@ public class TxController {
         .type(req.type())
         .quantity(req.quantity())
         .price(req.price())
-        .fee(req.fee())
         .amount(req.amount())
         .note(req.note())
         .build();
